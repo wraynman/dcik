@@ -1,0 +1,15 @@
+{
+  "name": "dcik",
+  "version": "1.0.0",
+  "description": "Draft Capital is King — Dynasty Rookie Draft Tool",
+  "scripts": {
+    "start": "serve . --listen $PORT --no-clipboard",
+    "update-adp": "node update-adp.js"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
