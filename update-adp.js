@@ -115,6 +115,25 @@ function parseAdpMap(html) {
 }
 
 // ─────────────────────────────────────────────────────────────────────
+// Parse Fantasy Calc JSON → Map<norm(name), value (int)>
+// API: https://api.fantasycalc.com/values/current?isDynasty=true&numQbs=1&ppr=1&numTeams=12&isSuperflex=false
+// ─────────────────────────────────────────────────────────────────────
+function parseFcMap(jsonText) {
+  const map = new Map();
+  let data;
+  try { data = JSON.parse(jsonText); } catch(_) { return map; }
+  if (!Array.isArray(data)) return map;
+  for (const entry of data) {
+    const player = entry.player || entry;
+    const name   = norm(player.name || player.playerName || '');
+    const value  = typeof entry.value === 'number'  ? entry.value  :
+                   typeof player.value === 'number' ? player.value : null;
+    if (name && value != null) map.set(name, Math.round(value));
+  }
+  return map;
+}
+
+// ─────────────────────────────────────────────────────────────────────
 // Parse dynasty overall ADP → Map<norm(name), rank (int)>
 // ─────────────────────────────────────────────────────────────────────
 function parseOverallMap(html) {
@@ -144,15 +163,15 @@ function parseOverallMap(html) {
 
 // ─────────────────────────────────────────────────────────────────────
 // Patch a single line of the NFL_2026 array
-// Returns { line, rookieChanged, overallChanged }
+// Returns { line, rookieChanged, overallChanged, fcChanged }
 // ─────────────────────────────────────────────────────────────────────
-function patchLine(line, rookieMap, overallMap) {
+function patchLine(line, rookieMap, overallMap, fcMap1QB, fcMapSF) {
   const nameM = line.match(/name:"([^"]+)"/);
-  if (!nameM) return { line, rookieChanged: false, overallChanged: false };
+  if (!nameM) return { line, rookieChanged: false, overallChanged: false, fcChanged: false };
 
   const key = norm(nameM[1]);
   let out = line;
-  let rookieChanged = false, overallChanged = false;
+  let rookieChanged = false, overallChanged = false, fcChanged = false;
 
   const newRookie = rookieMap.get(key);
   if (newRookie != null) {
@@ -168,40 +187,67 @@ function patchLine(line, rookieMap, overallMap) {
     overallChanged = out !== before;
   }
 
-  return { line: out, rookieChanged, overallChanged };
+  const newFc1QB = fcMap1QB ? fcMap1QB.get(key) : null;
+  if (newFc1QB != null) {
+    const before = out;
+    out = out.replace(/fcValue:(\d+|null)/, `fcValue:${newFc1QB}`);
+    if (out !== before) fcChanged = true;
+  }
+
+  const newFcSF = fcMapSF ? fcMapSF.get(key) : null;
+  if (newFcSF != null) {
+    const before = out;
+    out = out.replace(/fcValueSF:(\d+|null)/, `fcValueSF:${newFcSF}`);
+    if (out !== before) fcChanged = true;
+  }
+
+  return { line: out, rookieChanged, overallChanged, fcChanged };
 }
 
 // ─────────────────────────────────────────────────────────────────────
 // Main
 // ─────────────────────────────────────────────────────────────────────
 async function main() {
-  log('📡 Fetching FantasyPros ADP data…');
+  log('📡 Fetching ADP + Fantasy Calc data…');
 
-  const [rookieHtml, overallHtml] = await Promise.all([
+  const FC_BASE = 'https://api.fantasycalc.com/values/current?isDynasty=true&ppr=1&numTeams=12';
+
+  const [rookieHtml, overallHtml, fc1qbJson, fcSfJson] = await Promise.all([
     get('https://www.fantasypros.com/nfl/adp/rookies.php?year=2026'),
     get('https://www.fantasypros.com/nfl/adp/dynasty-overall.php'),
+    get(FC_BASE + '&numQbs=1&isSuperflex=false'),
+    get(FC_BASE + '&numQbs=2&isSuperflex=true'),
   ]);
 
   const rookieMap  = parseAdpMap(rookieHtml);
   const overallMap = parseOverallMap(overallHtml);
+  const fcMap1QB   = parseFcMap(fc1qbJson);
+  const fcMapSF    = parseFcMap(fcSfJson);
 
   log(`   Rookie ADP entries found : ${rookieMap.size}`);
   log(`   Overall ADP entries found: ${overallMap.size}`);
+  log(`   Fantasy Calc 1QB entries : ${fcMap1QB.size}`);
+  log(`   Fantasy Calc SF entries  : ${fcMapSF.size}`);
 
   if (rookieMap.size < 5) {
     console.error('❌ Rookie ADP parse returned too few results — FantasyPros HTML may have changed.');
     process.exit(1);
+  }
+  if (fcMap1QB.size < 10) {
+    console.warn('⚠️  Fantasy Calc 1QB returned few results — API may have changed.');
   }
 
   // Patch index.html line by line
   const src   = fs.readFileSync(INDEX, 'utf8');
   const lines = src.split('\n');
 
-  let rookieUpdates = 0, overallUpdates = 0;
+  let rookieUpdates = 0, overallUpdates = 0, fcUpdates = 0;
   const patched = lines.map(line => {
-    const { line: newLine, rookieChanged, overallChanged } = patchLine(line, rookieMap, overallMap);
+    const { line: newLine, rookieChanged, overallChanged, fcChanged } =
+      patchLine(line, rookieMap, overallMap, fcMap1QB, fcMapSF);
     if (rookieChanged)  rookieUpdates++;
     if (overallChanged) overallUpdates++;
+    if (fcChanged)      fcUpdates++;
     return newLine;
   });
 
@@ -221,6 +267,7 @@ async function main() {
   log(`\n✅ Done!`);
   log(`   rookieAdp  updated: ${rookieUpdates} players`);
   log(`   overallAdp updated: ${overallUpdates} players`);
+  log(`   fcValue    updated: ${fcUpdates} players`);
   log(`   Date stamp → ${TODAY}`);
   log(`   File: ${INDEX}`);
 

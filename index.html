@@ -164,6 +164,22 @@
     .block-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(251,191,36,.07); }
     .block-btn.active { background: rgba(251,191,36,.08); border-color: var(--yellow); color: var(--yellow); }
 
+    /* ── FC VALUE CHIP ── */
+    .adp-chip.fc { background: rgba(20,184,166,.1); border: 1px solid rgba(20,184,166,.2); }
+    .adp-chip.fc .adp-val { color: #2dd4bf; }
+
+    /* ── HIT RATE BADGE ── */
+    .hit-rate { display: inline-block; font-size: 0.64rem; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; cursor: default; }
+    .hit-rate.hr-high { background: rgba(74,222,128,.15);  color: var(--green);  }
+    .hit-rate.hr-med  { background: rgba(251,191,36,.12);  color: var(--yellow); }
+    .hit-rate.hr-low  { background: rgba(248,113,113,.1);  color: var(--red);    }
+
+    /* ── SEARCH INPUT ── */
+    .search-input { background: var(--bg); border: 1.5px solid var(--border); color: var(--text); padding: 5px 11px; border-radius: 8px; font-size: 0.8rem; outline: none; transition: border-color .15s; width: 160px; }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--muted); }
+    .filter-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
     .del-btn { background: transparent; border: none; color: var(--muted); font-size: .86rem; padding: 4px 6px; border-radius: 4px; cursor: pointer; flex-shrink: 0; line-height: 1; transition: color .12s, background .12s; }
     .del-btn:hover { color: var(--red); background: rgba(248,113,113,.1); }
 
@@ -188,6 +204,8 @@
       .url-input  { max-width: 100%; }
       .board      { padding: 8px 10px 60px; }
       .filter-bar { padding: 10px 12px; gap: 5px; }
+      .filter-sep { display: none; }
+      .search-input { width: 100%; order: -1; }
       .status-strip { padding: 8px 12px; font-size: 0.72rem; flex-wrap: wrap; }
       .refresh-btn { margin-left: 0; }
       .card { gap: 6px; padding: 8px 8px; }
@@ -231,11 +249,17 @@
 </div>
 
 <div class="filter-bar" id="filterBar">
+  <input class="search-input" id="searchInput" type="text" placeholder="Search player or team…" oninput="setSearch(this.value)">
+  <div class="filter-sep"></div>
   <button class="pill on"       id="pillALL"   onclick="setFilter('ALL')">All</button>
   <button class="pill qb"       id="pillQB"    onclick="setFilter('QB')">QB</button>
   <button class="pill rb"       id="pillRB"    onclick="setFilter('RB')">RB</button>
   <button class="pill wr"       id="pillWR"    onclick="setFilter('WR')">WR</button>
   <button class="pill te"       id="pillTE"    onclick="setFilter('TE')">TE</button>
+  <div class="filter-sep"></div>
+  <button class="pill on" id="pill1QB" onclick="setFormat('1QB')">1QB</button>
+  <button class="pill"    id="pillSF"  onclick="setFormat('SF')">SF</button>
+  <div class="filter-sep"></div>
   <button class="pill taken on" id="pillTaken" onclick="toggleTaken()">Hide Taken</button>
   <button class="pill pill-right" onclick="resetOrder()">↺ Reset Order</button>
 </div>
@@ -260,6 +284,13 @@
       <span class="chip-eg">
         <span class="chip-sm chip-ovr">OVR 40</span> = overall dynasty ADP rank
       </span>
+      &nbsp;·&nbsp;
+      <span class="chip-eg">
+        <span class="chip-sm" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.3);color:#2dd4bf">FC 4345</span> = Fantasy Calc dynasty value
+      </span><br>
+      <span class="chip-eg">
+        <span class="chip-sm" style="background:rgba(74,222,128,.15);border:none;color:var(--green)">62%</span> = historical hit rate (% of picks at this range &amp; position who become dynasty starters)
+      </span>
     </p>
   </div>
 </div>
@@ -275,87 +306,87 @@
 // ═══════════════════════════════════════════════════════════════════
 const NFL_2026 = [
   // ── Round 1 ──
-  { overall:  1, round:1, name:"Fernando Mendoza",    pos:"QB", nfl:"LV",  rookieAdp:8.7,  overallAdp:99  },
-  { overall:  3, round:1, name:"Jeremiyah Love",      pos:"RB", nfl:"ARI", rookieAdp:1,  overallAdp:16  },
-  { overall:  4, round:1, name:"Carnell Tate",        pos:"WR", nfl:"TEN", rookieAdp:2.5,  overallAdp:40  },
-  { overall:  8, round:1, name:"Jordyn Tyson",        pos:"WR", nfl:"NO",  rookieAdp:3.7,  overallAdp:48  },
-  { overall: 13, round:1, name:"Ty Simpson",          pos:"QB", nfl:"LAR", rookieAdp:27.2, overallAdp:173 },
-  { overall: 16, round:1, name:"Kenyon Sadiq",        pos:"TE", nfl:"NYJ", rookieAdp:8,  overallAdp:87  },
-  { overall: 20, round:1, name:"Makai Lemon",         pos:"WR", nfl:"PHI", rookieAdp:4.7,  overallAdp:59  },
-  { overall: 24, round:1, name:"KC Concepcion",       pos:"WR", nfl:"CLE", rookieAdp:6.3,  overallAdp:76  },
-  { overall: 30, round:1, name:"Omar Cooper Jr.",     pos:"WR", nfl:"NYJ", rookieAdp:8.2,  overallAdp:79  },
-  { overall: 32, round:1, name:"Jadarian Price",      pos:"RB", nfl:"SEA", rookieAdp:4.3,  overallAdp:71  },
+  { overall:  1, round:1, name:"Fernando Mendoza",       pos:"QB", nfl:"LV",  rookieAdp:8.7,  overallAdp:99,  fcValue:2509, fcValueSF:4681 },
+  { overall:  3, round:1, name:"Jeremiyah Love",         pos:"RB", nfl:"ARI", rookieAdp:1,    overallAdp:16,  fcValue:7424, fcValueSF:6791 },
+  { overall:  4, round:1, name:"Carnell Tate",           pos:"WR", nfl:"TEN", rookieAdp:2.5,  overallAdp:40,  fcValue:4525, fcValueSF:4514 },
+  { overall:  8, round:1, name:"Jordyn Tyson",           pos:"WR", nfl:"NO",  rookieAdp:3.7,  overallAdp:48,  fcValue:4077, fcValueSF:4067 },
+  { overall: 13, round:1, name:"Ty Simpson",             pos:"QB", nfl:"LAR", rookieAdp:27.2, overallAdp:173, fcValue:1427, fcValueSF:2661 },
+  { overall: 16, round:1, name:"Kenyon Sadiq",           pos:"TE", nfl:"NYJ", rookieAdp:8,    overallAdp:87,  fcValue:2892, fcValueSF:3154 },
+  { overall: 20, round:1, name:"Makai Lemon",            pos:"WR", nfl:"PHI", rookieAdp:4.7,  overallAdp:59,  fcValue:3746, fcValueSF:3737 },
+  { overall: 24, round:1, name:"KC Concepcion",          pos:"WR", nfl:"CLE", rookieAdp:6.3,  overallAdp:76,  fcValue:3092, fcValueSF:3085 },
+  { overall: 30, round:1, name:"Omar Cooper Jr.",        pos:"WR", nfl:"NYJ", rookieAdp:8.2,  overallAdp:79,  fcValue:2652, fcValueSF:2646 },
+  { overall: 32, round:1, name:"Jadarian Price",         pos:"RB", nfl:"SEA", rookieAdp:4.3,  overallAdp:71,  fcValue:3885, fcValueSF:3553 },
   // ── Round 2 ──
-  { overall: 33, round:2, name:"De'Zhaun Stribling",  pos:"WR", nfl:"SF",  rookieAdp:21, overallAdp:184 },
-  { overall: 39, round:2, name:"Denzel Boston",       pos:"WR", nfl:"CLE", rookieAdp:9.5,  overallAdp:98  },
-  { overall: 47, round:2, name:"Germie Bernard",      pos:"WR", nfl:"PIT", rookieAdp:17.2, overallAdp:122 },
-  { overall: 54, round:2, name:"Eli Stowers",         pos:"TE", nfl:"PHI", rookieAdp:14.2, overallAdp:118 },
-  { overall: 56, round:2, name:"Nate Boerkircher",    pos:"TE", nfl:"JAX", rookieAdp:60, overallAdp:null},
-  { overall: 59, round:2, name:"Marlin Klein",        pos:"TE", nfl:"HOU", rookieAdp:54.3, overallAdp:null},
-  { overall: 61, round:2, name:"Max Klare",           pos:"TE", nfl:"LAR", rookieAdp:33.6, overallAdp:null},
+  { overall: 33, round:2, name:"De'Zhaun Stribling",     pos:"WR", nfl:"SF",  rookieAdp:21,   overallAdp:184, fcValue:1606, fcValueSF:1602 },
+  { overall: 39, round:2, name:"Denzel Boston",          pos:"WR", nfl:"CLE", rookieAdp:9.5,  overallAdp:98,  fcValue:2366, fcValueSF:2361 },
+  { overall: 47, round:2, name:"Germie Bernard",         pos:"WR", nfl:"PIT", rookieAdp:17.2, overallAdp:122, fcValue:1929, fcValueSF:1925 },
+  { overall: 54, round:2, name:"Eli Stowers",            pos:"TE", nfl:"PHI", rookieAdp:14.2,   overallAdp:118, fcValue:2341, fcValueSF:2554 },
+  { overall: 56, round:2, name:"Nate Boerkircher",       pos:"TE", nfl:"JAX", rookieAdp:60, overallAdp:null,fcValue:103, fcValueSF:112 },
+  { overall: 59, round:2, name:"Marlin Klein",           pos:"TE", nfl:"HOU", rookieAdp:54.3,   overallAdp:null,fcValue:314, fcValueSF:343 },
+  { overall: 61, round:2, name:"Max Klare",              pos:"TE", nfl:"LAR", rookieAdp:33.6, overallAdp:null,fcValue:1287, fcValueSF:1404 },
   // ── Round 3 ──
-  { overall: 65, round:3, name:"Carson Beck",         pos:"QB", nfl:"ARI", rookieAdp:33.4, overallAdp:null},
-  { overall: 69, round:3, name:"Sam Roush",           pos:"TE", nfl:"CHI", rookieAdp:55.3, overallAdp:null},
-  { overall: 71, round:3, name:"Antonio Williams",    pos:"WR", nfl:"WAS", rookieAdp:17.3, overallAdp:175 },
-  { overall: 73, round:3, name:"Oscar Delp",          pos:"TE", nfl:"NO",  rookieAdp:35.8, overallAdp:null},
-  { overall: 74, round:3, name:"Malachi Fields",      pos:"WR", nfl:"NYG", rookieAdp:27, overallAdp:181 },
-  { overall: 75, round:3, name:"Caleb Douglas",       pos:"WR", nfl:"MIA", rookieAdp:37.6, overallAdp:null},
-  { overall: 76, round:3, name:"Drew Allar",          pos:"QB", nfl:"PIT", rookieAdp:41.3, overallAdp:null},
-  { overall: 79, round:3, name:"Zachariah Branch",    pos:"WR", nfl:"ATL", rookieAdp:21.3, overallAdp:144 },
-  { overall: 80, round:3, name:"Ja'Kobi Lane",        pos:"WR", nfl:"BAL", rookieAdp:28.5, overallAdp:195 },
-  { overall: 83, round:3, name:"Chris Brazzell II",   pos:"WR", nfl:"CAR", rookieAdp:24.3, overallAdp:129 },
-  { overall: 84, round:3, name:"Ted Hurst",           pos:"WR", nfl:"TB",  rookieAdp:28.3, overallAdp:189 },
-  { overall: 87, round:3, name:"Will Kacmarek",       pos:"TE", nfl:"MIA", rookieAdp:64, overallAdp:null},
-  { overall: 89, round:3, name:"Zavion Thomas",       pos:"WR", nfl:"CHI", rookieAdp:42.3, overallAdp:null},
-  { overall: 90, round:3, name:"Kaelon Black",        pos:"RB", nfl:"SF",  rookieAdp:27.8, overallAdp:null},
-  { overall: 94, round:3, name:"Chris Bell",          pos:"WR", nfl:"MIA", rookieAdp:18.5, overallAdp:119 },
-  { overall: 95, round:3, name:"Eli Raridon",         pos:"TE", nfl:"NE",  rookieAdp:41.5, overallAdp:null},
+  { overall: 65, round:3, name:"Carson Beck",            pos:"QB", nfl:"ARI", rookieAdp:33.4, overallAdp:null,fcValue:884, fcValueSF:1649 },
+  { overall: 69, round:3, name:"Sam Roush",              pos:"TE", nfl:"CHI", rookieAdp:55.3, overallAdp:null,fcValue:206, fcValueSF:225 },
+  { overall: 71, round:3, name:"Antonio Williams",       pos:"WR", nfl:"WAS", rookieAdp:17.3, overallAdp:175, fcValue:1881, fcValueSF:1876 },
+  { overall: 73, round:3, name:"Oscar Delp",             pos:"TE", nfl:"NO",  rookieAdp:35.8, overallAdp:null,fcValue:988, fcValueSF:1077 },
+  { overall: 74, round:3, name:"Malachi Fields",         pos:"WR", nfl:"NYG", rookieAdp:27, overallAdp:181, fcValue:1479, fcValueSF:1475 },
+  { overall: 75, round:3, name:"Caleb Douglas",          pos:"WR", nfl:"MIA", rookieAdp:37.6, overallAdp:null,fcValue:655, fcValueSF:654 },
+  { overall: 76, round:3, name:"Drew Allar",             pos:"QB", nfl:"PIT", rookieAdp:41.3, overallAdp:null,fcValue:714, fcValueSF:1332 },
+  { overall: 79, round:3, name:"Zachariah Branch",       pos:"WR", nfl:"ATL", rookieAdp:21.3,   overallAdp:144, fcValue:1497, fcValueSF:1494 },
+  { overall: 80, round:3, name:"Ja'Kobi Lane",           pos:"WR", nfl:"BAL", rookieAdp:28.5, overallAdp:195, fcValue:1309, fcValueSF:1306 },
+  { overall: 83, round:3, name:"Chris Brazzell II",      pos:"WR", nfl:"CAR", rookieAdp:24.3, overallAdp:129, fcValue:1451, fcValueSF:1448 },
+  { overall: 84, round:3, name:"Ted Hurst",              pos:"WR", nfl:"TB",  rookieAdp:28.3, overallAdp:189, fcValue:1465, fcValueSF:1461 },
+  { overall: 87, round:3, name:"Will Kacmarek",          pos:"TE", nfl:"MIA", rookieAdp:64, overallAdp:null,fcValue:341, fcValueSF:372 },
+  { overall: 89, round:3, name:"Zavion Thomas",          pos:"WR", nfl:"CHI", rookieAdp:42.3,   overallAdp:null,fcValue:431, fcValueSF:430 },
+  { overall: 90, round:3, name:"Kaelon Black",           pos:"RB", nfl:"SF",  rookieAdp:27.8, overallAdp:null,fcValue:1228, fcValueSF:1123 },
+  { overall: 94, round:3, name:"Chris Bell",             pos:"WR", nfl:"MIA", rookieAdp:18.5, overallAdp:119, fcValue:2055, fcValueSF:2050 },
+  { overall: 95, round:3, name:"Eli Raridon",            pos:"TE", nfl:"NE",  rookieAdp:41.5, overallAdp:null,fcValue:912, fcValueSF:994 },
   // ── Round 4 ──
-  { overall:105, round:4, name:"Brenen Thompson",     pos:"WR", nfl:"LAC", rookieAdp:32.3, overallAdp:null},
-  { overall:108, round:4, name:"Jonah Coleman",       pos:"RB", nfl:"DEN", rookieAdp:10.3, overallAdp:128 },
-  { overall:110, round:4, name:"Cade Klubnik",        pos:"QB", nfl:"NYJ", rookieAdp:47.8, overallAdp:null},
-  { overall:115, round:4, name:"Elijah Sarratt",      pos:"WR", nfl:"BAL", rookieAdp:24.3, overallAdp:139 },
-  { overall:121, round:4, name:"Kaden Wetjen",        pos:"WR", nfl:"PIT", rookieAdp:63.5, overallAdp:null},
-  { overall:122, round:4, name:"Mike Washington Jr.", pos:"RB", nfl:"LV",  rookieAdp:14.3, overallAdp:null},
-  { overall:125, round:4, name:"Skyler Bell",         pos:"WR", nfl:"BUF", rookieAdp:27.8, overallAdp:null},
-  { overall:133, round:4, name:"Matthew Hibner",      pos:"TE", nfl:"BAL", rookieAdp:93, overallAdp:null},
-  { overall:136, round:4, name:"Bryce Lance",         pos:"WR", nfl:"NO",  rookieAdp:38.8, overallAdp:null},
-  { overall:140, round:4, name:"Colbie Young",        pos:"WR", nfl:"CIN", rookieAdp:77.3, overallAdp:null},
+  { overall:105, round:4, name:"Brenen Thompson",        pos:"WR", nfl:"LAC", rookieAdp:32.3, overallAdp:null,fcValue:921, fcValueSF:918 },
+  { overall:108, round:4, name:"Jonah Coleman",          pos:"RB", nfl:"DEN", rookieAdp:10.3, overallAdp:128, fcValue:2445, fcValueSF:2236 },
+  { overall:110, round:4, name:"Cade Klubnik",           pos:"QB", nfl:"NYJ", rookieAdp:47.8, overallAdp:null,fcValue:505, fcValueSF:942 },
+  { overall:115, round:4, name:"Elijah Sarratt",         pos:"WR", nfl:"BAL", rookieAdp:24.3, overallAdp:139, fcValue:1585, fcValueSF:1581 },
+  { overall:121, round:4, name:"Kaden Wetjen",           pos:"WR", nfl:"PIT", rookieAdp:63.5, overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:122, round:4, name:"Mike Washington Jr.",    pos:"RB", nfl:"LV",  rookieAdp:14.3, overallAdp:null,fcValue:1572, fcValueSF:1438 },
+  { overall:125, round:4, name:"Skyler Bell",            pos:"WR", nfl:"BUF", rookieAdp:27.8, overallAdp:null,fcValue:1338, fcValueSF:1335 },
+  { overall:133, round:4, name:"Matthew Hibner",         pos:"TE", nfl:"BAL", rookieAdp:93,   overallAdp:null,fcValue:289, fcValueSF:315 },
+  { overall:136, round:4, name:"Bryce Lance",            pos:"WR", nfl:"NO",  rookieAdp:38.8, overallAdp:null,fcValue:757, fcValueSF:755 },
+  { overall:140, round:4, name:"Colbie Young",           pos:"WR", nfl:"CIN", rookieAdp:77.3,   overallAdp:null,fcValue:null, fcValueSF:null },
   // ── Round 5 ──
-  { overall:143, round:5, name:"Reggie Virgil",       pos:"WR", nfl:"ARI", rookieAdp:72, overallAdp:null},
-  { overall:152, round:5, name:"Justin Joly",         pos:"TE", nfl:"CLE", rookieAdp:33.8, overallAdp:null},
-  { overall:161, round:5, name:"Emmett Johnson",      pos:"RB", nfl:"KC",  rookieAdp:15.2, overallAdp:149 },
-  { overall:164, round:5, name:"Tanner Koziol",       pos:"TE", nfl:"JAX", rookieAdp:55.7, overallAdp:null},
-  { overall:165, round:5, name:"Nicholas Singleton",  pos:"RB", nfl:"TEN", rookieAdp:null, overallAdp:null},
-  { overall:169, round:5, name:"Riley Nowakowski",    pos:"TE", nfl:"PIT", rookieAdp:125,overallAdp:null},
-  { overall:170, round:5, name:"Joe Royer",           pos:"TE", nfl:"CLE", rookieAdp:64, overallAdp:null},
-  { overall:173, round:5, name:"Josh Cuevas",         pos:"TE", nfl:"BAL", rookieAdp:null, overallAdp:null},
-  { overall:174, round:5, name:"Adam Randall",        pos:"RB", nfl:"BAL", rookieAdp:34.2, overallAdp:null},
-  { overall:176, round:5, name:"Cyrus Allen",         pos:"WR", nfl:"KC",  rookieAdp:54, overallAdp:null},
-  { overall:177, round:5, name:"Kevin Coleman Jr.",   pos:"WR", nfl:"MIA", rookieAdp:45.8, overallAdp:null},
-  { overall:178, round:5, name:"Cole Payton",         pos:"QB", nfl:"PHI", rookieAdp:51, overallAdp:null},
-  { overall:180, round:5, name:"Seydou Traore",       pos:"TE", nfl:"MIA", rookieAdp:58.0, overallAdp:null},
+  { overall:143, round:5, name:"Reggie Virgil",          pos:"WR", nfl:"ARI", rookieAdp:72,   overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:152, round:5, name:"Justin Joly",            pos:"TE", nfl:"CLE", rookieAdp:33.8, overallAdp:null,fcValue:814, fcValueSF:888 },
+  { overall:161, round:5, name:"Emmett Johnson",         pos:"RB", nfl:"KC",  rookieAdp:15.2, overallAdp:149, fcValue:1916, fcValueSF:1753 },
+  { overall:164, round:5, name:"Tanner Koziol",          pos:"TE", nfl:"JAX", rookieAdp:55.7,   overallAdp:null,fcValue:364, fcValueSF:397 },
+  { overall:165, round:5, name:"Nicholas Singleton",     pos:"RB", nfl:"TEN", rookieAdp:null, overallAdp:null,fcValue:2096, fcValueSF:1917 },
+  { overall:169, round:5, name:"Riley Nowakowski",       pos:"TE", nfl:"PIT", rookieAdp:125,  overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:170, round:5, name:"Joe Royer",              pos:"TE", nfl:"CLE", rookieAdp:64, overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:173, round:5, name:"Josh Cuevas",            pos:"TE", nfl:"BAL", rookieAdp:null, overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:174, round:5, name:"Adam Randall",           pos:"RB", nfl:"BAL", rookieAdp:34.2, overallAdp:null,fcValue:1165, fcValueSF:1066 },
+  { overall:176, round:5, name:"Cyrus Allen",            pos:"WR", nfl:"KC",  rookieAdp:54, overallAdp:null,fcValue:192, fcValueSF:192 },
+  { overall:177, round:5, name:"Kevin Coleman Jr.",      pos:"WR", nfl:"MIA", rookieAdp:45.8, overallAdp:null,fcValue:775, fcValueSF:773 },
+  { overall:178, round:5, name:"Cole Payton",            pos:"QB", nfl:"PHI", rookieAdp:51,   overallAdp:null,fcValue:178, fcValueSF:332 },
+  { overall:180, round:5, name:"Seydou Traore",          pos:"TE", nfl:"MIA", rookieAdp:58.0, overallAdp:null,fcValue:null, fcValueSF:null },
   // ── Round 6 ──
-  { overall:182, round:6, name:"Taylen Green",        pos:"QB", nfl:"CLE", rookieAdp:49.3, overallAdp:null},
-  { overall:187, round:6, name:"Kaytron Allen",       pos:"RB", nfl:"WAS", rookieAdp:20.2, overallAdp:null},
-  { overall:190, round:6, name:"Barion Brown",        pos:"WR", nfl:"NO",  rookieAdp:73, overallAdp:null},
-  { overall:191, round:6, name:"Josh Cameron",        pos:"WR", nfl:"JAX", rookieAdp:75, overallAdp:null},
-  { overall:195, round:6, name:"Malik Benson",        pos:"WR", nfl:"LV",  rookieAdp:53.5, overallAdp:null},
-  { overall:197, round:6, name:"CJ Daniels",          pos:"WR", nfl:"LAR", rookieAdp:46, overallAdp:null},
-  { overall:198, round:6, name:"Demond Claiborne",    pos:"RB", nfl:"MIN", rookieAdp:26.3, overallAdp:null},
-  { overall:199, round:6, name:"Emmanuel Henderson Jr.", pos:"WR", nfl:"SEA", rookieAdp:117,overallAdp:null},
-  { overall:203, round:6, name:"CJ Williams",         pos:"WR", nfl:"JAX", rookieAdp:null, overallAdp:null},
-  { overall:204, round:6, name:"Lewis Bond",          pos:"WR", nfl:"HOU", rookieAdp:81, overallAdp:null},
+  { overall:182, round:6, name:"Taylen Green",           pos:"QB", nfl:"CLE", rookieAdp:49.3, overallAdp:null,fcValue:366, fcValueSF:683 },
+  { overall:187, round:6, name:"Kaytron Allen",          pos:"RB", nfl:"WAS", rookieAdp:20.2, overallAdp:null,fcValue:1654, fcValueSF:1513 },
+  { overall:190, round:6, name:"Barion Brown",           pos:"WR", nfl:"NO",  rookieAdp:73,   overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:191, round:6, name:"Josh Cameron",           pos:"WR", nfl:"JAX", rookieAdp:75,   overallAdp:null,fcValue:171, fcValueSF:171 },
+  { overall:195, round:6, name:"Malik Benson",           pos:"WR", nfl:"LV",  rookieAdp:53.5, overallAdp:null,fcValue:175, fcValueSF:174 },
+  { overall:197, round:6, name:"CJ Daniels",             pos:"WR", nfl:"LAR", rookieAdp:46, overallAdp:null,fcValue:491, fcValueSF:489 },
+  { overall:198, round:6, name:"Demond Claiborne",       pos:"RB", nfl:"MIN", rookieAdp:26.3, overallAdp:null,fcValue:1337, fcValueSF:1223 },
+  { overall:199, round:6, name:"Emmanuel Henderson Jr.", pos:"WR", nfl:"SEA", rookieAdp:117,  overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:203, round:6, name:"CJ Williams",            pos:"WR", nfl:"JAX", rookieAdp:null, overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:204, round:6, name:"Lewis Bond",             pos:"WR", nfl:"HOU", rookieAdp:81,   overallAdp:null,fcValue:null, fcValueSF:null },
   // ── Round 7 ──
-  { overall:218, round:7, name:"Anthony Smith",       pos:"WR", nfl:"DAL", rookieAdp:null, overallAdp:null},
-  { overall:221, round:7, name:"Jack Endries",        pos:"TE", nfl:"CIN", rookieAdp:60, overallAdp:null},
-  { overall:223, round:7, name:"Athan Kaliakmanis",   pos:"QB", nfl:"WAS", rookieAdp:123,overallAdp:null},
-  { overall:225, round:7, name:"Jaren Kanak",         pos:"TE", nfl:"TEN", rookieAdp:100, overallAdp:null},
-  { overall:230, round:7, name:"Eli Heidenreich",     pos:"RB", nfl:"PIT", rookieAdp:39.5, overallAdp:null},
-  { overall:234, round:7, name:"Behren Morton",       pos:"QB", nfl:"NE",  rookieAdp:104,overallAdp:null},
-  { overall:237, round:7, name:"Seth McGowan",        pos:"RB", nfl:"IND", rookieAdp:40, overallAdp:null},
-  { overall:245, round:7, name:"Jam Miller",          pos:"RB", nfl:"NE",  rookieAdp:51.8, overallAdp:null},
-  { overall:249, round:7, name:"Garrett Nussmeier",   pos:"QB", nfl:"KC",  rookieAdp:41.3, overallAdp:null},
+  { overall:218, round:7, name:"Anthony Smith",          pos:"WR", nfl:"DAL", rookieAdp:null, overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:221, round:7, name:"Jack Endries",           pos:"TE", nfl:"CIN", rookieAdp:60, overallAdp:null,fcValue:446, fcValueSF:486 },
+  { overall:223, round:7, name:"Athan Kaliakmanis",      pos:"QB", nfl:"WAS", rookieAdp:123,  overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:225, round:7, name:"Jaren Kanak",            pos:"TE", nfl:"TEN", rookieAdp:100,   overallAdp:null,fcValue:154, fcValueSF:167 },
+  { overall:230, round:7, name:"Eli Heidenreich",        pos:"RB", nfl:"PIT", rookieAdp:39.5, overallAdp:null,fcValue:873, fcValueSF:799 },
+  { overall:234, round:7, name:"Behren Morton",          pos:"QB", nfl:"NE",  rookieAdp:104,  overallAdp:null,fcValue:null, fcValueSF:null },
+  { overall:237, round:7, name:"Seth McGowan",           pos:"RB", nfl:"IND", rookieAdp:40,   overallAdp:null,fcValue:512, fcValueSF:468 },
+  { overall:245, round:7, name:"Jam Miller",             pos:"RB", nfl:"NE",  rookieAdp:51.8, overallAdp:null,fcValue:434, fcValueSF:397 },
+  { overall:249, round:7, name:"Garrett Nussmeier",      pos:"QB", nfl:"KC",  rookieAdp:41.3, overallAdp:null,fcValue:463, fcValueSF:864 },
 ];
 
 // Assign IRL rank = sequential skill-player count in NFL draft order (1 = first skill player off the board)
@@ -375,6 +406,8 @@ let removedSet    = new Set();
 let blockingSet   = new Set();
 let activeFilter  = 'ALL';
 let showTaken     = true;
+let leagueFormat  = '1QB'; // '1QB' or 'SF'
+let searchQuery   = '';
 let pollTimer     = null;
 let lastPickCount = -1;
 let lastRefreshed = null;
@@ -508,22 +541,42 @@ function buildTakenMap(picks) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Hit rate lookup — historical % of picks who become dynasty starters
+// ═══════════════════════════════════════════════════════════════════
+function getHitRate(overall, pos) {
+  const ranges = [
+    { max:  15, WR: 68, RB: 62, QB: 55, TE: 45 },
+    { max:  32, WR: 52, RB: 47, QB: 33, TE: 35 },
+    { max:  65, WR: 33, RB: 30, QB: 15, TE: 22 },
+    { max: 105, WR: 19, RB: 17, QB:  8, TE: 12 },
+    { max: 176, WR: 10, RB:  8, QB:  5, TE:  6 },
+    { max: 999, WR:  5, RB:  4, QB:  3, TE:  4 },
+  ];
+  const row = ranges.find(r => overall <= r.max);
+  return row ? (row[pos] ?? null) : null;
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Render
 // ═══════════════════════════════════════════════════════════════════
 function render() {
   const takenMap = buildTakenMap(sleeperPicks);
+  const fcKey    = leagueFormat === 'SF' ? 'fcValueSF' : 'fcValue';
 
-  // Compute top-3 best available by rookie ADP (respects active position filter)
+  // Compute top-3 best available by rookie ADP (respects filter + search)
   const baSet = new Map();
   NFL_2026
     .map((p, i) => ({ p, i }))
-    .filter(({ p, i }) =>
-      !removedSet.has(i) &&
-      !takenMap[norm(p.name)] &&
-      !blockingSet.has(i) &&
-      p.rookieAdp != null &&
-      (activeFilter === 'ALL' || p.pos === activeFilter)
-    )
+    .filter(({ p, i }) => {
+      if (removedSet.has(i) || takenMap[norm(p.name)] || blockingSet.has(i)) return false;
+      if (p.rookieAdp == null) return false;
+      if (activeFilter !== 'ALL' && p.pos !== activeFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!p.name.toLowerCase().includes(q) && !p.nfl.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    })
     .sort((a, b) => a.p.rookieAdp - b.p.rookieAdp)
     .slice(0, 3)
     .forEach(({ i }, rank) => baSet.set(i, rank + 1));
@@ -534,6 +587,12 @@ function render() {
     if (removedSet.has(idx)) continue;
     const p = NFL_2026[idx];
     if (activeFilter !== 'ALL' && p.pos !== activeFilter) continue;
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !p.nfl.toLowerCase().includes(q)) continue;
+    }
 
     const taken   = takenMap[norm(p.name)];
     const isOff   = !!taken;
@@ -549,6 +608,10 @@ function render() {
       lastRound = p.round;
     }
 
+    const fcVal = p[fcKey];
+    const hr    = getHitRate(p.overall, p.pos);
+    const hrCls = hr != null ? (hr >= 40 ? 'hr-high' : hr >= 20 ? 'hr-med' : 'hr-low') : '';
+
     // Right-side content
     let rightHTML = '';
     if (isOff) {
@@ -557,7 +620,7 @@ function render() {
       const vsCls    = irlDelta > 0 ? 'val' : irlDelta < 0 ? 'over' : '';
       rightHTML = `<div class="taken-badge">
         <div class="taken-line1">Off Board</div>
-        <div class="taken-line2">Sleeper Rd ${taken.sleeperRound} · Pick ${taken.sleeperPick}</div>
+        <div class="taken-line2">Pick ${taken.sleeperPick}${fcVal != null ? ` · FC ${fcVal.toLocaleString()}` : ''}</div>
         ${taken.manager ? `<div class="taken-mgr">→ ${taken.manager}</div>` : ''}
         <div class="taken-vs ${vsCls}">vs IRL #${p.irlRank} · <span>${vsSign}</span></div>
       </div>`;
@@ -565,17 +628,21 @@ function render() {
       rightHTML = `<div class="blocking-badge">Blocking TE Only</div>`;
     } else {
       // IRL chip with delta vs rookie ADP
-      const irlDelta   = (p.rookieAdp != null) ? +(p.rookieAdp - p.irlRank).toFixed(1) : null;
-      const deltaStr   = irlDelta != null ? (irlDelta > 0 ? `▼${Math.abs(irlDelta)}` : irlDelta < 0 ? `▲${Math.abs(irlDelta)}` : '—') : '';
-      const deltaCls   = irlDelta != null ? (irlDelta > 0 ? 'val' : 'over') : '';
-      const rAdp = p.rookieAdp  != null ? p.rookieAdp  : '—';
-      const oAdp = p.overallAdp != null ? p.overallAdp : '—';
+      const irlDelta = (p.rookieAdp != null) ? +(p.rookieAdp - p.irlRank).toFixed(1) : null;
+      const deltaStr = irlDelta != null ? (irlDelta > 0 ? `▼${Math.abs(irlDelta)}` : irlDelta < 0 ? `▲${Math.abs(irlDelta)}` : '—') : '';
+      const deltaCls = irlDelta != null ? (irlDelta > 0 ? 'val' : 'over') : '';
+      const rAdp     = p.rookieAdp  != null ? p.rookieAdp  : '—';
+      const oAdp     = p.overallAdp != null ? p.overallAdp : '—';
 
       rightHTML = `<div class="adp-group">
         <div class="adp-chip irl">
           <div class="adp-label">IRL</div>
           <div class="adp-val">#${p.irlRank}</div>
           ${deltaStr ? `<div class="adp-delta ${deltaCls}">${deltaStr}</div>` : ''}
+        </div>
+        <div class="adp-chip fc${fcVal == null ? ' na' : ''}">
+          <div class="adp-label">FC</div>
+          <div class="adp-val">${fcVal != null ? fcVal.toLocaleString() : '—'}</div>
         </div>
         <div class="adp-chip rook${p.rookieAdp == null ? ' na' : ''}">
           <div class="adp-label">Rookie</div>
@@ -607,7 +674,7 @@ function render() {
         <div class="pos-chip ${p.pos}">${p.pos}</div>
         <div class="player-info">
           <div class="player-name">${p.name}</div>
-          <div class="player-sub">${p.nfl}</div>
+          <div class="player-sub">${p.nfl}${hr != null ? ` <span class="hit-rate ${hrCls}" title="${hr}% of ${p.pos}s from this NFL draft range become dynasty starters">${hr}%</span>` : ''}</div>
         </div>
         ${baSet.has(idx) ? `<div class="ba-badge ba${baSet.get(idx)}">${baSet.get(idx) === 1 ? '★ Best Avail' : `#${baSet.get(idx)}`}</div>` : ''}
         ${blockBtnHTML}
@@ -643,15 +710,18 @@ function renderResults(takenMap) {
   const values  = [...taken].sort((a, b) => b.delta - a.delta).slice(0, 3);
   const reaches = [...taken].sort((a, b) => a.delta - b.delta).slice(0, 3);
 
+  const fcKey = leagueFormat === 'SF' ? 'fcValueSF' : 'fcValue';
   function makeRow({ p, t, delta }, rank) {
-    const sign = delta > 0 ? `▼${delta}` : `▲${Math.abs(delta)}`;
-    const cls  = delta > 0 ? 'val' : 'over';
+    const sign  = delta > 0 ? `▼${delta}` : `▲${Math.abs(delta)}`;
+    const cls   = delta > 0 ? 'val' : 'over';
+    const fcVal = p[fcKey];
+    const fcStr = fcVal != null ? ` · FC ${fcVal.toLocaleString()}` : '';
     return `<div class="result-row">
       <div class="result-rank">${rank}</div>
       <div class="pos-chip ${p.pos}" style="width:22px;height:22px;font-size:.6rem;flex-shrink:0">${p.pos}</div>
       <div class="result-info">
         <div class="result-name">${p.name}</div>
-        <div class="result-meta">Pick #${t.sleeperPick} · IRL #${p.irlRank}${t.manager ? ` · ${t.manager}` : ''}</div>
+        <div class="result-meta">Pick #${t.sleeperPick} · IRL #${p.irlRank}${fcStr}${t.manager ? ` · ${t.manager}` : ''}</div>
       </div>
       <div class="result-delta ${cls}">${sign}</div>
     </div>`;
@@ -723,10 +793,26 @@ function updateFilterPills() {
     pillT.className   = `pill taken${showTaken ? ' on' : ''}`;
     pillT.textContent = showTaken ? 'Hide Taken' : 'Show Taken';
   }
+  const pill1QB = document.getElementById('pill1QB');
+  const pillSF  = document.getElementById('pillSF');
+  if (pill1QB) pill1QB.className = `pill${leagueFormat === '1QB' ? ' on' : ''}`;
+  if (pillSF)  pillSF.className  = `pill${leagueFormat === 'SF'  ? ' on' : ''}`;
 }
 function setFilter(pos) {
   activeFilter = pos;
   updateFilterPills();
+  render();
+}
+function setFormat(fmt) {
+  leagueFormat = fmt;
+  const pill1QB = document.getElementById('pill1QB');
+  const pillSF  = document.getElementById('pillSF');
+  if (pill1QB) pill1QB.className = `pill${fmt === '1QB' ? ' on' : ''}`;
+  if (pillSF)  pillSF.className  = `pill${fmt === 'SF'  ? ' on' : ''}`;
+  render();
+}
+function setSearch(val) {
+  searchQuery = val.trim();
   render();
 }
 function toggleTaken() {
@@ -787,6 +873,7 @@ function saveState() {
     localStorage.setItem('dcik_blocking', JSON.stringify([...blockingSet]));
     localStorage.setItem('dcik_filter',   activeFilter);
     localStorage.setItem('dcik_showTaken',String(showTaken));
+    localStorage.setItem('dcik_format',   leagueFormat);
   } catch(_) {}
 }
 
@@ -795,8 +882,10 @@ function bootFromStorage() {
     const url    = localStorage.getItem('dcik_url');
     const filter = localStorage.getItem('dcik_filter');
     const taken  = localStorage.getItem('dcik_showTaken');
+    const fmt    = localStorage.getItem('dcik_format');
     if (filter) activeFilter = filter;
     if (taken !== null) showTaken = (taken === 'true');
+    if (fmt)   leagueFormat = fmt;
     if (url) {
       document.getElementById('urlInput').value = url;
       loadDraft(true);
