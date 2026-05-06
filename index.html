@@ -169,7 +169,7 @@
     .adp-chip.fc .adp-val { color: #2dd4bf; }
 
     /* ── HIT RATE BADGE ── */
-    .hit-rate { display: inline-block; font-size: 0.64rem; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; cursor: default; }
+    .hit-rate { display: inline-block; font-size: 0.63rem; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-left: 5px; vertical-align: middle; cursor: default; white-space: nowrap; }
     .hit-rate.hr-high { background: rgba(74,222,128,.15);  color: var(--green);  }
     .hit-rate.hr-med  { background: rgba(251,191,36,.12);  color: var(--yellow); }
     .hit-rate.hr-low  { background: rgba(248,113,113,.1);  color: var(--red);    }
@@ -184,14 +184,23 @@
     .del-btn:hover { color: var(--red); background: rgba(248,113,113,.1); }
 
     /* ── MISC ── */
-    .center-msg { padding: 64px 24px; text-align: center; color: var(--muted); }
-    .center-msg h2 { font-size: 1.35rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-    .center-msg p  { font-size: .88rem; line-height: 1.8; }
+    .center-msg { padding: 48px 24px 60px; text-align: center; color: var(--muted); }
+    .center-msg h2 { font-size: 1.35rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .center-msg .sub { font-size: .82rem; margin-bottom: 28px; }
     .chip-eg { display: inline-flex; gap: 5px; align-items: center; vertical-align: middle; }
-    .chip-sm { padding: 2px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; }
+    .chip-sm { padding: 2px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; white-space: nowrap; }
     .chip-irl  { background: rgba(108,99,255,.12); border: 1px solid rgba(108,99,255,.3); color: #a5b4fc; }
     .chip-rook { background: rgba(96,165,250,.12);  border: 1px solid rgba(96,165,250,.25); color: #93c5fd; }
     .chip-ovr  { background: rgba(74,222,128,.12);  border: 1px solid rgba(74,222,128,.25); color: var(--rb); }
+
+    /* ── LEGEND GRID ── */
+    .legend-grid { display: flex; flex-direction: column; gap: 0; max-width: 660px; margin: 0 auto; text-align: left; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .legend-row { display: flex; align-items: flex-start; gap: 14px; padding: 11px 16px; border-bottom: 1px solid var(--border); }
+    .legend-row:last-child { border-bottom: none; }
+    .legend-chip { flex-shrink: 0; display: flex; align-items: center; min-width: 88px; }
+    .legend-desc { font-size: 0.78rem; line-height: 1.5; color: var(--muted); }
+    .legend-desc strong { color: var(--text); font-weight: 600; }
+    .legend-note { font-size: 0.72rem; color: var(--muted); margin-top: 20px; opacity: .6; }
     .error-box { margin: 12px 24px 0; padding: 11px 16px; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.25); border-radius: 8px; color: #fca5a5; font-size: .83rem; }
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .65s linear infinite; vertical-align: middle; margin-right: 8px; }
     .last-updated { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
@@ -271,27 +280,67 @@
 <div id="board" class="board">
   <div class="center-msg">
     <h2>Paste a Sleeper draft link above</h2>
-    <p>
-      Players ranked by 2026 NFL Draft capital · All 7 rounds<br>
-      ADP source: FantasyPros consensus · May 6, 2026<br><br>
-      <span class="chip-eg">
-        <span class="chip-sm chip-irl" style="color:var(--green)">IRL #3 ▼2</span> = 3rd skill player in NFL draft · fantasy drafted them 2 spots later = undervalued vs their capital (DCIK value)
-      </span><br>
-      <span class="chip-eg">
-        <span class="chip-sm chip-rook">ROOK 2.5</span> = avg rookie draft pick position
-      </span>
-      &nbsp;·&nbsp;
-      <span class="chip-eg">
-        <span class="chip-sm chip-ovr">OVR 40</span> = overall dynasty ADP rank
-      </span>
-      &nbsp;·&nbsp;
-      <span class="chip-eg">
-        <span class="chip-sm" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.3);color:#2dd4bf">FC 4345</span> = Fantasy Calc dynasty value
-      </span><br>
-      <span class="chip-eg">
-        <span class="chip-sm" style="background:rgba(74,222,128,.15);border:none;color:var(--green)">62%</span> = historical hit rate (% of picks at this range &amp; position who become dynasty starters)
-      </span>
-    </p>
+    <p class="sub">2026 NFL Draft · All 7 rounds · ADP: FantasyPros consensus · Values: Fantasy Calc · Updated daily</p>
+
+    <div class="legend-grid">
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm chip-irl" style="color:#a5b4fc">IRL #3</span>
+        </div>
+        <div class="legend-desc">
+          <strong>NFL Draft Capital rank</strong> — this player was the 3rd offensive skill player (QB/RB/WR/TE) taken in the real NFL draft. The core DCIK metric: higher real-life capital = higher dynasty ceiling.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm chip-irl" style="color:var(--green)">▼2</span>
+        </div>
+        <div class="legend-desc">
+          <strong>IRL vs Rookie ADP delta</strong> — how many spots later (▼) or earlier (▲) this player is being taken in fantasy rookie drafts vs their real NFL draft position. <span style="color:var(--green)">▼ = undervalued vs capital</span> (DCIK value pick) · <span style="color:var(--yellow)">▲ = overvalued</span>.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm" style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.3);color:#2dd4bf">FC VAL 4,345</span>
+        </div>
+        <div class="legend-desc">
+          <strong>Fantasy Calc dynasty trade value</strong> — a community-sourced score reflecting what managers pay in dynasty trades (higher = more valuable). Toggle <strong>1QB / SF</strong> in the filter bar to switch formats. Updated daily from fantasycalc.com.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm chip-rook">Rookie 2.5</span>
+        </div>
+        <div class="legend-desc">
+          <strong>Dynasty rookie draft ADP</strong> — average pick position in dynasty rookie-only drafts (FantasyPros consensus, updated daily). Lower = drafted earlier = more coveted by fantasy managers.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm chip-ovr">OVR 40</span>
+        </div>
+        <div class="legend-desc">
+          <strong>Overall dynasty ADP</strong> — rank among all players (veterans + rookies) in dynasty startup/redraft leagues.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-chip">
+          <span class="chip-sm" style="background:rgba(74,222,128,.15);color:var(--green)">62% hit rate</span>
+        </div>
+        <div class="legend-desc">
+          <strong>Historical hit rate</strong> — estimated % of players drafted at this NFL pick range &amp; position who become dynasty-relevant starters (top-24 at their position) within 3 seasons. Based on composite analysis of 2012–2022 NFL draft classes.
+          <br><span style="color:var(--green)">●</span> ≥40% high floor &nbsp;·&nbsp; <span style="color:var(--yellow)">●</span> 20–39% speculative &nbsp;·&nbsp; <span style="color:var(--red)">●</span> &lt;20% long shot
+        </div>
+      </div>
+
+    </div>
+    <p class="legend-note">★ Best Avail badge marks the top-3 players by Rookie ADP still on the board · Drag cards to reorder · ✕ removes a player from view</p>
   </div>
 </div>
 
@@ -620,7 +669,7 @@ function render() {
       const vsCls    = irlDelta > 0 ? 'val' : irlDelta < 0 ? 'over' : '';
       rightHTML = `<div class="taken-badge">
         <div class="taken-line1">Off Board</div>
-        <div class="taken-line2">Pick ${taken.sleeperPick}${fcVal != null ? ` · FC ${fcVal.toLocaleString()}` : ''}</div>
+        <div class="taken-line2">Pick ${taken.sleeperPick}${fcVal != null ? ` · FC ${leagueFormat} ${fcVal.toLocaleString()}` : ''}</div>
         ${taken.manager ? `<div class="taken-mgr">→ ${taken.manager}</div>` : ''}
         <div class="taken-vs ${vsCls}">vs IRL #${p.irlRank} · <span>${vsSign}</span></div>
       </div>`;
@@ -640,8 +689,8 @@ function render() {
           <div class="adp-val">#${p.irlRank}</div>
           ${deltaStr ? `<div class="adp-delta ${deltaCls}">${deltaStr}</div>` : ''}
         </div>
-        <div class="adp-chip fc${fcVal == null ? ' na' : ''}">
-          <div class="adp-label">FC</div>
+        <div class="adp-chip fc${fcVal == null ? ' na' : ''}" title="Fantasy Calc dynasty value (${leagueFormat} format) — updated daily from fantasycalc.com">
+          <div class="adp-label">FC ${leagueFormat}</div>
           <div class="adp-val">${fcVal != null ? fcVal.toLocaleString() : '—'}</div>
         </div>
         <div class="adp-chip rook${p.rookieAdp == null ? ' na' : ''}">
@@ -674,7 +723,7 @@ function render() {
         <div class="pos-chip ${p.pos}">${p.pos}</div>
         <div class="player-info">
           <div class="player-name">${p.name}</div>
-          <div class="player-sub">${p.nfl}${hr != null ? ` <span class="hit-rate ${hrCls}" title="${hr}% of ${p.pos}s from this NFL draft range become dynasty starters">${hr}%</span>` : ''}</div>
+          <div class="player-sub">${p.nfl}${hr != null ? ` <span class="hit-rate ${hrCls}" title="Hit rate: ${hr}% of ${p.pos}s drafted in this NFL pick range become dynasty-relevant starters within 3 seasons (est. from 2012–2022 draft classes)">${hr}% hit rate</span>` : ''}</div>
         </div>
         ${baSet.has(idx) ? `<div class="ba-badge ba${baSet.get(idx)}">${baSet.get(idx) === 1 ? '★ Best Avail' : `#${baSet.get(idx)}`}</div>` : ''}
         ${blockBtnHTML}
