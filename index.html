@@ -126,6 +126,7 @@
     .taken-badge { flex-shrink: 0; background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.2); border-radius: 6px; padding: 4px 9px; text-align: right; }
     .taken-line1 { font-size: .7rem; font-weight: 700; color: var(--yellow); }
     .taken-line2 { font-size: .64rem; color: var(--muted); margin-top: 1px; }
+    .taken-mgr   { font-size: .64rem; color: var(--accent); margin-top: 1px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
     .taken-vs { font-size: .64rem; color: var(--muted); margin-top: 3px; border-top: 1px solid rgba(251,191,36,.12); padding-top: 3px; }
     .taken-vs span { font-weight: 700; }
     .taken-vs.val span { color: var(--green); }
@@ -377,6 +378,7 @@ let showTaken     = true;
 let pollTimer     = null;
 let lastPickCount = -1;
 let lastRefreshed = null;
+let managerMap    = {}; // roster_id → display name
 
 const POLL_MS = 3 * 60 * 1000; // 3 minutes
 
@@ -407,6 +409,26 @@ async function loadDraft(restoreFromStorage = false) {
     ]);
     draftInfo = info; sleeperPicks = picks; lastPickCount = picks.length;
     lastRefreshed = new Date();
+
+    // Fetch manager names from league (best-effort — standalone drafts have no league_id)
+    managerMap = {};
+    if (info.league_id) {
+      try {
+        const [users, rosters] = await Promise.all([
+          apiFetch(`/league/${info.league_id}/users`),
+          apiFetch(`/league/${info.league_id}/rosters`),
+        ]);
+        // Build user_id → preferred name map
+        const userById = {};
+        for (const u of (users || [])) {
+          userById[u.user_id] = u.metadata?.team_name || u.display_name || '';
+        }
+        // Build roster_id → name via owner_id
+        for (const r of (rosters || [])) {
+          managerMap[r.roster_id] = userById[r.owner_id] || '';
+        }
+      } catch(_) { /* league fetch failed — picks still work, just no names */ }
+    }
 
     if (restoreFromStorage) {
       try {
@@ -478,7 +500,9 @@ function buildTakenMap(picks) {
   for (const p of picks) {
     const m = p.metadata || {};
     const key = norm(`${m.first_name} ${m.last_name}`);
-    if (key) map[key] = { sleeperRound: p.round, sleeperPick: p.pick_no };
+    if (!key) continue;
+    const manager = managerMap[p.roster_id] || '';
+    map[key] = { sleeperRound: p.round, sleeperPick: p.pick_no, manager };
   }
   return map;
 }
@@ -534,6 +558,7 @@ function render() {
       rightHTML = `<div class="taken-badge">
         <div class="taken-line1">Off Board</div>
         <div class="taken-line2">Sleeper Rd ${taken.sleeperRound} · Pick ${taken.sleeperPick}</div>
+        ${taken.manager ? `<div class="taken-mgr">→ ${taken.manager}</div>` : ''}
         <div class="taken-vs ${vsCls}">vs IRL #${p.irlRank} · <span>${vsSign}</span></div>
       </div>`;
     } else if (isBlock) {
@@ -626,7 +651,7 @@ function renderResults(takenMap) {
       <div class="pos-chip ${p.pos}" style="width:22px;height:22px;font-size:.6rem;flex-shrink:0">${p.pos}</div>
       <div class="result-info">
         <div class="result-name">${p.name}</div>
-        <div class="result-meta">Pick #${t.sleeperPick} · IRL #${p.irlRank}</div>
+        <div class="result-meta">Pick #${t.sleeperPick} · IRL #${p.irlRank}${t.manager ? ` · ${t.manager}` : ''}</div>
       </div>
       <div class="result-delta ${cls}">${sign}</div>
     </div>`;
