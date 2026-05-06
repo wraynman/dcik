@@ -21,14 +21,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
 
+    /* ── CENTERING ── */
+    /* All full-width bars use dynamic side padding so content centres at 1040px */
+    :root { --cx: max(24px, calc((100vw - 1040px) / 2)); }
+
     /* ── HEADER ── */
-    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 10px; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px var(--cx); display: flex; align-items: center; gap: 10px; }
     .logo { font-size: 1.35rem; font-weight: 900; letter-spacing: -0.5px; }
     .logo-accent { color: var(--accent); }
     .header-sub { font-size: 0.78rem; color: var(--muted); padding-left: 6px; border-left: 1px solid var(--border); }
 
     /* ── INPUT BAR ── */
-    .input-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 24px; display: flex; gap: 10px; align-items: center; }
+    .input-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px var(--cx); display: flex; gap: 10px; align-items: center; }
     .url-input { flex: 1; max-width: 620px; background: var(--bg); border: 1.5px solid var(--border); color: var(--text); padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color .15s; }
     .url-input:focus { border-color: var(--accent); }
     .url-input::placeholder { color: var(--muted); }
@@ -36,7 +40,7 @@
     .load-btn:hover { background: #7b73ff; }
 
     /* ── STATUS STRIP ── */
-    .status-strip { display: none; padding: 9px 24px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); align-items: center; gap: 10px; }
+    .status-strip { display: none; padding: 9px var(--cx); background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--muted); align-items: center; gap: 10px; }
     .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .dot-live { background: var(--green); box-shadow: 0 0 5px var(--green); animation: pulse 2s infinite; }
     .dot-done { background: var(--muted); }
@@ -50,7 +54,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── FILTER BAR ── */
-    .filter-bar { display: none; padding: 12px 24px; border-bottom: 1px solid var(--border); gap: 7px; align-items: center; flex-wrap: wrap; }
+    .filter-bar { display: none; padding: 12px var(--cx); border-bottom: 1px solid var(--border); gap: 7px; align-items: center; flex-wrap: wrap; }
     .pill { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 5px 13px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all .15s; line-height: 1; }
     .pill:hover { color: var(--text); border-color: #3a3f5a; }
     .pill.on       { border-color: var(--accent); color: var(--accent); background: rgba(108,99,255,.12); }
@@ -62,7 +66,7 @@
     .pill-right { margin-left: auto; }
 
     /* ── BOARD ── */
-    .board { padding: 12px 24px 60px; max-width: 1040px; }
+    .board { padding: 12px 24px 60px; max-width: 1040px; margin: 0 auto; }
     .round-header { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; color: var(--muted); padding: 18px 0 8px; display: flex; align-items: center; gap: 10px; }
     .round-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
@@ -126,6 +130,24 @@
     .taken-vs span { font-weight: 700; }
     .taken-vs.val span { color: var(--green); }
     .taken-vs.over span { color: var(--yellow); }
+
+    /* ── RESULTS SECTION ── */
+    .results-strip { display: none; background: var(--surface2); border-bottom: 1px solid var(--border); padding: 14px var(--cx); }
+    .results-inner { display: flex; gap: 16px; }
+    .results-col   { flex: 1; min-width: 0; }
+    .results-heading { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .results-heading.val  { color: var(--green); }
+    .results-heading.over { color: var(--yellow); }
+    .result-row  { display: flex; align-items: center; gap: 7px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .result-row:last-child { border-bottom: none; }
+    .result-rank { width: 14px; font-size: 0.65rem; font-weight: 700; color: var(--muted); text-align: center; flex-shrink: 0; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-meta { font-size: 0.64rem; color: var(--muted); margin-top: 1px; }
+    .result-delta { font-size: 0.75rem; font-weight: 800; flex-shrink: 0; }
+    .result-delta.val  { color: var(--green); }
+    .result-delta.over { color: var(--yellow); }
+    @media (max-width: 540px) { .results-inner { flex-direction: column; gap: 12px; } }
 
     /* ── BEST AVAILABLE BADGE ── */
     .ba-badge { flex-shrink: 0; border-radius: 6px; padding: 4px 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
@@ -215,6 +237,10 @@
   <button class="pill te"       id="pillTE"    onclick="setFilter('TE')">TE</button>
   <button class="pill taken on" id="pillTaken" onclick="toggleTaken()">Hide Taken</button>
   <button class="pill pill-right" onclick="resetOrder()">↺ Reset Order</button>
+</div>
+
+<div class="results-strip" id="resultsStrip">
+  <div class="results-inner" id="resultsInner"></div>
 </div>
 
 <div id="board" class="board">
@@ -569,7 +595,53 @@ function render() {
   document.getElementById('board').innerHTML = html;
   const ac = document.getElementById('availCount');
   if (draftId) ac.innerHTML = `· <span>${avail}</span> available`;
+  renderResults(takenMap);
   saveState();
+}
+
+function renderResults(takenMap) {
+  const strip = document.getElementById('resultsStrip');
+  const inner = document.getElementById('resultsInner');
+
+  // Collect taken players that exist in our database
+  const taken = [];
+  NFL_2026.forEach((p, i) => {
+    if (removedSet.has(i)) return;
+    const t = takenMap[norm(p.name)];
+    if (!t) return;
+    const delta = t.sleeperPick - p.irlRank; // +ve = value, -ve = reach
+    taken.push({ p, t, delta });
+  });
+
+  if (taken.length === 0) { strip.style.display = 'none'; return; }
+
+  const values  = [...taken].sort((a, b) => b.delta - a.delta).slice(0, 3);
+  const reaches = [...taken].sort((a, b) => a.delta - b.delta).slice(0, 3);
+
+  function makeRow({ p, t, delta }, rank) {
+    const sign = delta > 0 ? `▼${delta}` : `▲${Math.abs(delta)}`;
+    const cls  = delta > 0 ? 'val' : 'over';
+    return `<div class="result-row">
+      <div class="result-rank">${rank}</div>
+      <div class="pos-chip ${p.pos}" style="width:22px;height:22px;font-size:.6rem;flex-shrink:0">${p.pos}</div>
+      <div class="result-info">
+        <div class="result-name">${p.name}</div>
+        <div class="result-meta">Pick #${t.sleeperPick} · IRL #${p.irlRank}</div>
+      </div>
+      <div class="result-delta ${cls}">${sign}</div>
+    </div>`;
+  }
+
+  inner.innerHTML = `
+    <div class="results-col">
+      <div class="results-heading val">💎 Top Values</div>
+      ${values.map((item, i) => makeRow(item, i + 1)).join('')}
+    </div>
+    <div class="results-col">
+      <div class="results-heading over">⚡ Top Reaches</div>
+      ${reaches.map((item, i) => makeRow(item, i + 1)).join('')}
+    </div>`;
+  strip.style.display = 'block';
 }
 
 function roundLabel(r) {
